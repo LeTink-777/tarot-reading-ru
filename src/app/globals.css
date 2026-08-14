@@ -1,26 +1,346 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg-primary: #1a0a0a;
+  --bg-secondary: #2d1010;
+  --bg-card: #221212;
+  --bg-card-hover: #2e1a1a;
+  --accent-gold: #c8973a;
+  --accent-gold-light: #e8c87a;
+  --accent-cream: #f5ecd8;
+  --text-primary: #f5ecd8;
+  --text-secondary: #b8a888;
+  --text-muted: #7a6a55;
+  --border: #4a2a1a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-gold-light: var(--accent-gold-light);
+  --color-accent-cream: var(--accent-cream);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border-tarot: var(--border);
+
+  --font-gothic: var(--font-unifraktur), var(--font-ruslan), "Times New Roman", serif;
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-lato), var(--font-pt-sans), system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-lato), var(--font-pt-sans), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent-gold);
+  color: var(--bg-primary);
+}
+
+/* ---------------------------------------------------------------
+   Signature element: animated tarot-card-back Celtic knot texture
+   --------------------------------------------------------------- */
+
+.knot-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("/celtic-knot.svg");
+  background-repeat: repeat;
+  background-size: 120px 120px;
+  opacity: 0.04;
+  animation: knot-drift 90s linear infinite;
+}
+
+@keyframes knot-drift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 240px 240px;
+  }
+}
+
+.knot-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 45% at 50% 0%, rgba(200, 151, 58, 0.16), transparent 70%),
+    radial-gradient(45% 40% at 12% 82%, rgba(200, 151, 58, 0.08), transparent 72%);
+}
+
+/* ---------------------------------------------------------------
+   Ornate gold borders, drawn in CSS
+   --------------------------------------------------------------- */
+
+.ornate {
+  position: relative;
+  border: 1px solid var(--accent-gold);
+  border-radius: 10px;
+  background-image: linear-gradient(
+    150deg,
+    rgba(200, 151, 58, 0.14),
+    rgba(200, 151, 58, 0) 45%,
+    rgba(200, 151, 58, 0.1)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(26, 10, 10, 0.9),
+    inset 0 0 0 4px rgba(200, 151, 58, 0.35),
+    inset 0 0 0 5px rgba(26, 10, 10, 0.9),
+    inset 0 0 26px rgba(0, 0, 0, 0.55),
+    0 12px 34px rgba(0, 0, 0, 0.5);
+}
+
+.ornate::before,
+.ornate::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--accent-gold-light);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.ornate::before {
+  top: 9px;
+  left: 9px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: 4px;
+}
+
+.ornate::after {
+  bottom: 9px;
+  right: 9px;
+  border-left: 0;
+  border-top: 0;
+  border-bottom-right-radius: 4px;
+}
+
+/* Card back: knot texture at card scale */
+.card-back {
+  background-color: var(--bg-secondary);
+  background-image: url("/celtic-knot.svg");
+  background-size: 62px 62px;
+  background-repeat: repeat;
+  position: relative;
+}
+
+.card-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    70% 60% at 50% 45%,
+    rgba(200, 151, 58, 0.14),
+    rgba(26, 10, 10, 0.72) 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.card-face {
+  background-color: var(--bg-card);
+  background-image:
+    radial-gradient(75% 55% at 50% 22%, rgba(200, 151, 58, 0.16), transparent 70%),
+    url("/celtic-knot.svg");
+  background-size: auto, 90px 90px;
+}
+
+/* ---------------------------------------------------------------
+   Flip mechanics
+   --------------------------------------------------------------- */
+
+.flip-scene {
+  perspective: 1400px;
+}
+
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.4, 0.05, 0.2, 1);
+}
+
+.flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.flip-face--back {
+  transform: rotateY(180deg);
+}
+
+/* ---------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------- */
+
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 15px 26px;
+  border-radius: 8px;
+  border: 1px solid var(--accent-gold-light);
+  background: linear-gradient(180deg, var(--accent-gold-light), var(--accent-gold));
+  color: #24100a;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+  box-shadow: 0 8px 26px rgba(200, 151, 58, 0.22);
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 12px 34px rgba(200, 151, 58, 0.34);
+}
+
+.btn-gold:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 15px 22px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent-gold);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+}
+
+.pulse-gold {
+  animation: pulse-gold 2.2s ease-in-out infinite;
+}
+
+@keyframes pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 8px 26px rgba(200, 151, 58, 0.22);
+  }
+  50% {
+    box-shadow: 0 10px 40px rgba(200, 151, 58, 0.55);
+  }
+}
+
+/* ---------------------------------------------------------------
+   Form controls
+   --------------------------------------------------------------- */
+
+.field {
+  width: 100%;
+  min-height: 54px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.field::placeholder {
+  color: var(--text-muted);
+}
+
+.field:focus {
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px rgba(200, 151, 58, 0.16);
+}
+
+.label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+/* ---------------------------------------------------------------
+   Misc
+   --------------------------------------------------------------- */
+
+.quote {
+  border-left: 3px solid var(--accent-gold);
+  padding-left: 20px;
+}
+
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+  opacity: 0.45;
+}
+
+.locked-blur {
+  filter: blur(3px) saturate(0.65);
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

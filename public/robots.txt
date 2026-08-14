@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /result
+Disallow: /thank-you
+Disallow: /api/
+
+Sitemap: https://tarot-reading-ru.vercel.app/sitemap.xml

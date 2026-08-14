@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# tarot-reading-ru
 
-## Getting Started
+Воронка персонального расклада Таро на русском языке: бесплатная первая карта,
+квиз вместо стандартного прайса и оплата через ЮKassa.
 
-First, run the development server:
+Стек: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Framer Motion,
+Lucide React, `@yookassa/sdk`.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Страницы
+
+| Маршрут      | Что делает                                                           |
+| ------------ | -------------------------------------------------------------------- |
+| `/`          | Лендинг: выбор одной из шести тем, форма, анимация раскладки карт     |
+| `/result`    | Первая карта открыта, остальные закрыты, квиз-подбор тарифа           |
+| `/thank-you` | Подтверждение заказа и апселл голосового разбора                      |
+| `/privacy`   | Политика конфиденциальности                                           |
+| `/offer`     | Публичная оферта                                                      |
+
+API: `POST /api/checkout` создаёт платёж и возвращает `confirmationUrl`,
+`POST /api/webhook` принимает уведомления ЮKassa.
+
+## Как устроен расклад
+
+`src/lib/tarot.ts` содержит все 22 Старших Аркана: значение в прямом положении,
+совет и по одному предложению под каждую из шести тем. Карты тянутся
+детерминированно — сид считается из имени, темы и даты, поэтому в течение суток
+расклад не меняется при перезагрузке страницы.
+
+## Переменные окружения
+
+Скопируйте `.env.example` в `.env.local` и заполните:
+
+```
+YUKASSA_SECRET_KEY=            # секретный ключ магазина, только на сервере
+NEXT_PUBLIC_YUKASSA_SHOP_ID=   # идентификатор магазина
+NEXT_PUBLIC_SITE_URL=          # базовый адрес сайта
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Без этих переменных `/api/checkout` отвечает `503`, остальной сайт работает.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Разработка
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev     # http://localhost:3000
+npm run build   # продакшен-сборка
+npm run lint
+```
 
-## Learn More
+## Шрифты
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Логотип набран UnifrakturMaguntia, но готическая латиница не содержит кириллицы,
+поэтому русские буквы подхватывает Ruslan Display. По той же причине латинский
+Lato в интерфейсе дополнен PT Sans. Метрические фолбэки этих двух латинских
+шрифтов отключены намеренно — иначе локальный Times перехватывал бы кириллицу.
