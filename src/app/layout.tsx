@@ -84,6 +84,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Евдокимов Даниил Владимирович" }],
   alternates: { canonical: "/" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
+    ],
+    apple: { url: "/favicon.svg" },
+  },
   openGraph: {
     type: "website",
     locale: "ru_RU",
