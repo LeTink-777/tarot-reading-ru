@@ -50,7 +50,8 @@ export async function createPayment(
     capture: true,
     description: description.slice(0, 128),
     confirmation: { type: "redirect", return_url: returnUrl },
-    payment_method_data: { type: "bank_card" },
+    // Без payment_method_data ЮKassa показывает все подключённые способы
+    // оплаты: карта, SberPay, СБП, T-Pay, ЮMoney.
     metadata: { orderId, ...metadata },
   };
 
