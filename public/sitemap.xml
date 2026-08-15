@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tarot-reading-ru.vercel.app/</loc>
+    <loc>https://www.taro-online.online/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://tarot-reading-ru.vercel.app/privacy</loc>
+    <loc>https://www.taro-online.online/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://tarot-reading-ru.vercel.app/offer</loc>
+    <loc>https://www.taro-online.online/offer</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

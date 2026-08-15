@@ -4,4 +4,4 @@ Disallow: /result
 Disallow: /thank-you
 Disallow: /api/
 
-Sitemap: https://tarot-reading-ru.vercel.app/sitemap.xml
+Sitemap: https://www.taro-online.online/sitemap.xml

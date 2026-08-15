@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PLANS, isPlanId } from "@/lib/plans";
 import { createPayment, isYukassaConfigured } from "@/lib/yukassa";
+import { resolveSiteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,12 +13,6 @@ interface CheckoutBody {
     email?: unknown;
     topic?: unknown;
   };
-}
-
-function siteUrl(request: Request): string {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  return new URL(request.url).origin;
 }
 
 export async function POST(request: Request) {
@@ -49,7 +44,7 @@ export async function POST(request: Request) {
   }
 
   const orderId = `tarot-${plan.id}-${Date.now().toString(36)}`;
-  const base = siteUrl(request);
+  const base = resolveSiteUrl(request);
   const returnUrl = `${base}/thank-you?plan=${plan.id}&order=${orderId}`;
 
   try {

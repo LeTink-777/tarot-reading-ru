@@ -6,6 +6,7 @@ import {
   Ruslan_Display,
   UnifrakturMaguntia,
 } from "next/font/google";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 /* UnifrakturMaguntia не содержит кириллицы. Автоматический метрический
@@ -52,8 +53,6 @@ const ptSans = PT_Sans({
   weight: ["400", "700"],
   display: "swap",
 });
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://tarot-reading-ru.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
