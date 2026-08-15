@@ -16,7 +16,7 @@ import {
   type LucideProps,
 } from "lucide-react";
 import { ANSWER_TO_PLAN, PLANS, PLAN_ORDER, type PlanId, type QuizAnswer } from "@/lib/plans";
-import { readSpots, type TarotData } from "@/lib/storage";
+import { readSpots, savePendingOrder, type TarotData } from "@/lib/storage";
 import { useClientValue } from "@/lib/useClientValue";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -50,10 +50,21 @@ export function QuizPricing({ data }: QuizPricingProps) {
           userData: { name: data.name, email: data.email, topic: data.topic },
         }),
       });
-      const payload = (await response.json()) as { confirmationUrl?: string; error?: string };
+      const payload = (await response.json()) as {
+        confirmationUrl?: string;
+        orderId?: string;
+        paymentId?: string;
+        error?: string;
+      };
       if (!response.ok || !payload.confirmationUrl) {
         throw new Error(payload.error ?? "Не удалось создать платёж");
       }
+      // Нужен /thank-you, чтобы подтвердить оплату при скачивании PDF.
+      savePendingOrder({
+        plan,
+        orderId: payload.orderId ?? null,
+        paymentId: payload.paymentId ?? null,
+      });
       window.location.href = payload.confirmationUrl;
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Не удалось создать платёж");

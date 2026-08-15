@@ -36,6 +36,37 @@ export interface CreatePaymentResult {
   confirmationUrl: string;
 }
 
+export interface FetchedPayment {
+  id: string;
+  status: string;
+  metadata: Record<string, string>;
+}
+
+/**
+ * Читает платёж по идентификатору.
+ *
+ * Нужен, чтобы подтвердить: запрос на скачивание относится к реально
+ * оплаченному заказу, и чтобы взять данные расклада из самого платежа,
+ * а не из тела запроса браузера.
+ */
+export async function getPayment(paymentId: string): Promise<FetchedPayment | null> {
+  const api = getPaymentsApi();
+
+  try {
+    const response = await api.paymentsPaymentIdGet(paymentId);
+    const payment = response.data as Payment;
+
+    return {
+      id: String(payment.id),
+      status: String(payment.status),
+      metadata: (payment.metadata ?? {}) as Record<string, string>,
+    };
+  } catch {
+    // Неизвестный идентификатор — для вызывающего это просто «нет платежа».
+    return null;
+  }
+}
+
 export async function createPayment(
   amount: number,
   orderId: string,

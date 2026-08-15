@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Headphones, Loader2, Mail } from "lucide-react";
+import { Download, Headphones, Loader2, Mail } from "lucide-react";
 import { PLANS, isPlanId } from "@/lib/plans";
-import { readTarotData } from "@/lib/storage";
+import { readPendingOrder, readTarotData } from "@/lib/storage";
+import { generateResultSections } from "@/lib/result-sections";
+import { todayKey } from "@/lib/tarot";
 import { useClientValue } from "@/lib/useClientValue";
 import { CardBack } from "@/components/TarotCardVisual";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -23,10 +25,74 @@ export function ThankYouClient() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [storedPlan, setStoredPlan] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const order = readPendingOrder();
+    if (order) {
+      setPaymentId(order.paymentId);
+      setStoredPlan(order.plan);
+    }
+  }, []);
+
   const planParam = params.get("plan");
-  const plan = isPlanId(planParam) ? PLANS[planParam] : null;
+  const planId = planParam ?? storedPlan;
+  const plan = isPlanId(planId) ? PLANS[planId] : null;
   const hours = plan?.delivery ?? "24";
-  const showUpsell = planParam !== "premium" && planParam !== "audio_upsell";
+  const showUpsell = planId !== "premium" && planId !== "audio_upsell";
+
+  // Тот же построитель, что использует PDF в письме — страница и вложение
+  // всегда показывают одни и те же карты.
+  const sections = useMemo(
+    () =>
+      data
+        ? generateResultSections(
+            { name: data.name, topic: data.topic, dateKey: todayKey() },
+            planId
+          )
+        : [],
+    [data, planId]
+  );
+
+  async function handleDownloadPDF() {
+    if (!paymentId) {
+      setDownloadError(
+        "Не нашли номер платежа в этом браузере. Расклад отправлен вам на почту."
+      );
+      return;
+    }
+
+    setDownloading(true);
+    setDownloadError(null);
+
+    try {
+      const response = await fetch("/api/generate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentId }),
+      });
+
+      if (!response.ok) throw new Error(`PDF request failed with ${response.status}`);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "raskladtaro.pdf";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      // Немедленный revoke в некоторых браузерах отменяет загрузку.
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch {
+      setDownloadError("Не удалось скачать PDF. Он также отправлен вам на почту.");
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function addAudio() {
     setPending(true);
@@ -72,18 +138,56 @@ export function ThankYouClient() {
               lineHeight: 1.16,
             }}
           >
-            {data?.name ? `${data.name}, ваш расклад уже раскладывается` : "Ваш расклад уже раскладывается"}
+            Оплата прошла успешно!
           </h1>
 
           <p className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[16px] text-text-secondary">
             <Mail size={16} className="text-accent-gold" />
-            Мы пришлём его на {data?.email ? (
+            {data?.name ? `${data.name}, ваш` : "Ваш"} расклад открыт ниже. Копия
+            отправлена на {data?.email ? (
               <span className="text-accent-cream">{data.email}</span>
             ) : (
               "указанную почту"
-            )}{" "}
-            в течение {hours} часов
+            )}
           </p>
+
+          <div className="mt-8">
+            <button
+              type="button"
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className="inline-flex items-center justify-center gap-2.5 rounded-lg border border-accent-gold/60 bg-accent-gold/10 px-7 py-3.5 text-accent-cream transition-colors hover:border-accent-gold disabled:opacity-60"
+            >
+              <Download size={18} aria-hidden />
+              {downloading ? "Готовим PDF…" : "Скачать PDF"}
+            </button>
+
+            {downloadError ? (
+              <p className="mt-3 text-[14px] text-text-secondary" role="alert">
+                {downloadError}
+              </p>
+            ) : null}
+          </div>
+
+          {sections.length > 0 ? (
+            <section className="mt-12 text-left" aria-label="Ваш расклад">
+              <ul className="grid gap-4">
+                {sections.map((section) => (
+                  <li
+                    key={section.title}
+                    className="rounded-xl border border-accent-gold/25 bg-bg-secondary p-6"
+                  >
+                    <h2 className="text-[15px] font-medium text-accent-gold">
+                      {section.title}
+                    </h2>
+                    <p className="mt-2.5 text-[14px] leading-relaxed whitespace-pre-line text-text-secondary">
+                      {section.content}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {/* -------------------------------------- ВЕЕР ИЗ КАРТ */}
           <div className="relative mx-auto mt-12 h-[190px] w-full max-w-sm sm:h-[230px]">

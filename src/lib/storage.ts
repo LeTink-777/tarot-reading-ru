@@ -37,6 +37,44 @@ export function readTarotData(): TarotData | null {
   }
 }
 
+const PENDING_ORDER_KEY = "tarot_pending_order";
+
+export interface PendingOrder {
+  plan: string;
+  orderId: string | null;
+  /** Нужен /api/generate-pdf, чтобы подтвердить оплату перед выдачей PDF. */
+  paymentId: string | null;
+}
+
+/** Переживает переход на страницу оплаты ЮKassa и обратно. */
+export function savePendingOrder(order: PendingOrder): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PENDING_ORDER_KEY, JSON.stringify(order));
+  } catch {
+    // Расклад всё равно уходит письмом, даже если браузер ничего не сохранил.
+  }
+}
+
+export function readPendingOrder(): PendingOrder | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PENDING_ORDER_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<PendingOrder>;
+    if (typeof parsed?.plan !== "string") return null;
+
+    return {
+      plan: parsed.plan,
+      orderId: typeof parsed.orderId === "string" ? parsed.orderId : null,
+      paymentId: typeof parsed.paymentId === "string" ? parsed.paymentId : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
 /** Начало 24-часового отсчёта, переживающее перезагрузку страницы. */

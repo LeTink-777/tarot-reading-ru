@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PLANS, isPlanId } from "@/lib/plans";
 import { createPayment, isYukassaConfigured } from "@/lib/yukassa";
+import { todayKey } from "@/lib/tarot";
 import { resolveSiteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -53,6 +54,10 @@ export async function POST(request: Request) {
       email,
       name: name.slice(0, 120),
       topic: String(topic).slice(0, 60),
+      // Расклад детерминирован по дате, поэтому она фиксируется здесь: письмо,
+      // страница и скачанный PDF должны показывать одни и те же карты, даже
+      // если оплата прошла около полуночи.
+      dateKey: todayKey(),
     });
 
     return NextResponse.json({
